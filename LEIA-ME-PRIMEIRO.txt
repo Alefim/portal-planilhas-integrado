@@ -1,0 +1,24 @@
+PORTAL DE PLANILHAS — GOOGLE DRIVE DIRETO
+
+A PLANILHA PRINCIPAL NÃO É UM ARQUIVO LOCAL.
+Ela é aberta diretamente no Google Drive/Google Sheets pelo ID:
+1jabSU0G5IYoKP6raGtZszQuV8Ti92MJu9E44zkOWrCc
+
+Aba inicial: RESUMO GERAL (gid 349757095)
+
+PLANILHA DE REGISTRO DAS SESSÕES:
+1Q4QHcoPY27fboJEfq73pYgRrntG50N6c8rAx2VdqtHw
+Aba: Registros
+
+O sistema atualiza essa planilha em cada login, heartbeat, abertura de planilha e encerramento da sessão.
+
+PASSOS:
+1. Entre na conta Google que tem acesso à planilha.
+2. Abra o projeto no Google Apps Script.
+3. Atualize os arquivos do projeto.
+4. Execute configurarNovaConta() UMA VEZ.
+5. Autorize o acesso ao Google Drive/Sheets.
+6. Execute diagnosticoSistema().
+7. Publique uma nova versão do Aplicativo da Web.
+
+O portal valida a planilha diretamente no Drive em cada login e em cada clique para abrir a planilha. O sistema também cria as planilhas de Controle e Auditoria no Drive da conta que executar configurarNovaConta().

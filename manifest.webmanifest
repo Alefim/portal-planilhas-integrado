@@ -1,0 +1,23 @@
+{
+  "name": "Portal de Planilhas",
+  "short_name": "Planilhas",
+  "description": "Portal seguro para acesso às planilhas autorizadas.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffb400",
+  "theme_color": "#e51424",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

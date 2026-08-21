@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e8172d">
+  <title>Portal de Planilhas</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    :root {
+      --red: #e8172d;
+      --red-dark: #a60e1d;
+      --yellow: #ffbd17;
+      --yellow-soft: #fff1bd;
+      --green: #20a765;
+      --ink: #261d1b;
+      --muted: #776c68;
+      --surface: #fff;
+      --surface-soft: #fffaf1;
+      --line: #eadfd7;
+      --shadow: 0 24px 60px rgba(93, 47, 23, .14);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: #f7f2ec; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #f7f2ec;
+    }
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .hidden { display: none !important; }
+    .shell {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .login-page {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 14% 18%, rgba(255, 255, 255, .84), transparent 25%),
+        linear-gradient(125deg, #ffe38b 0%, #ffc52e 54%, #ffb80d 100%);
+    }
+    .login-page::before,
+    .login-page::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      border-radius: 999px;
+      pointer-events: none;
+    }
+    .login-page::before {
+      width: 480px;
+      height: 480px;
+      left: -250px;
+      bottom: -300px;
+      background: rgba(255, 255, 255, .24);
+    }
+    .login-page::after {
+      width: 420px;
+      height: 420px;
+      right: -250px;
+      top: -230px;
+      border: 70px solid rgba(232, 23, 45, .08);
+    }
+
+    .topbar {
+      min-height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid rgba(128, 68, 12, .12);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .brand img {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      box-shadow: 0 9px 22px rgba(177, 12, 28, .2);
+    }
+    .brand-copy { display: grid; line-height: 1.05; }
+    .brand-copy strong { font-size: 15px; letter-spacing: .04em; }
+    .brand-copy small { margin-top: 5px; color: #79501a; font-size: 11px; }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .top-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 36px;
+      padding: 0 13px;
+      border: 1px solid rgba(122, 55, 17, .16);
+      border-radius: 999px;
+      color: #704117;
+      background: rgba(255, 255, 255, .44);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(32, 167, 101, .13);
+    }
+
+    .login-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr);
+      align-items: center;
+      gap: clamp(48px, 7vw, 100px);
+      padding: 58px 0;
+    }
+    .hero { max-width: 650px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 20px;
+      color: var(--red-dark);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .18em;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 3px;
+      border-radius: 3px;
+      background: var(--red);
+    }
+    .hero h1 {
+      max-width: 620px;
+      margin: 0;
+      color: #76121b;
+      font-size: clamp(52px, 6vw, 78px);
+      line-height: .94;
+      letter-spacing: -.055em;
+    }
+    .hero h1 span { color: var(--red); }
+    .hero-subtitle {
+      max-width: 540px;
+      margin: 24px 0 0;
+      color: #71451f;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    .benefit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 34px;
+    }
+    .benefit {
+      min-height: 128px;
+      padding: 18px;
+      border: 1px solid rgba(126, 62, 16, .13);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .46);
+      backdrop-filter: blur(8px);
+    }
+    .benefit-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 13px;
+      border-radius: 12px;
+      color: #fff;
+      background: var(--red);
+      box-shadow: 0 8px 18px rgba(232, 23, 45, .2);
+      font-size: 15px;
+      font-weight: 900;
+    }
+    .benefit strong { display: block; font-size: 13px; }
+    .benefit small {
+      display: block;
+      margin-top: 6px;
+      color: #745738;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      justify-self: end;
+      padding: 34px;
+      border: 1px solid rgba(133, 65, 32, .1);
+      border-radius: 26px;
+      background: rgba(255, 255, 255, .96);
+      box-shadow: var(--shadow);
+    }
+    .login-card-head {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 27px;
+    }
+    .login-card-icon {
+      width: 50px;
+      height: 50px;
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--red), #ff4353);
+      font-size: 21px;
+      box-shadow: 0 10px 23px rgba(232, 23, 45, .22);
+    }
+    .login-card h2 { margin: 0; font-size: 23px; letter-spacing: -.025em; }
+    .login-card-head p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+    .field { display: grid; gap: 8px; margin-top: 17px; }
+    .field label { font-size: 11px; font-weight: 850; }
+    .field-control { position: relative; }
+    .field-control span {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aa9991;
+      font-size: 15px;
+      pointer-events: none;
+    }
+    .field input {
+      width: 100%;
+      height: 54px;
+      padding: 0 16px 0 45px;
+      border: 1px solid #dfd5cf;
+      border-radius: 13px;
+      outline: none;
+      color: var(--ink);
+      background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .field input::placeholder { color: #aa9f9a; }
+    .field input:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 4px rgba(232, 23, 45, .09);
+    }
+    .login-button {
+      width: 100%;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 24px;
+      border: 0;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--red), #f72a40);
+      box-shadow: 0 14px 26px rgba(232, 23, 45, .25);
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 17px 31px rgba(232, 23, 45, .3);
+    }
+    .login-button:active { transform: translateY(0); }
+    .login-card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 19px;
+      color: #8b7e78;
+      font-size: 10px;
+      font-weight: 750;
+    }
+    .login-card-foot span { color: var(--green); }
+
+    .site-footer {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-top: 1px solid rgba(128, 68, 12, .12);
+      color: #74471f;
+      font-size: 11px;
+    }
+    .site-footer strong { color: #69151b; }
+    .footer-links { display: flex; align-items: center; gap: 18px; }
+
+    .dashboard-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      background: #f7f4f1;
+    }
+    .sidebar {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 18px;
+      border-right: 1px solid var(--line);
+      background: #fff;
+    }
+    .side-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 8px 24px;
+      border-bottom: 1px solid #f0e9e4;
+    }
+    .side-brand img { width: 42px; height: 42px; border-radius: 12px; }
+    .side-brand strong { display: block; font-size: 13px; }
+    .side-brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .side-nav { display: grid; gap: 8px; margin-top: 25px; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 46px;
+      padding: 0 13px;
+      border: 0;
+      border-radius: 12px;
+      color: #665c58;
+      background: transparent;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .nav-item.active { color: var(--red-dark); background: #fff0d1; }
+    .nav-symbol { width: 22px; text-align: center; font-size: 16px; }
+    .side-bottom {
+      display: grid;
+      gap: 12px;
+      margin-top: auto;
+      padding: 18px 8px 0;
+      border-top: 1px solid #f0e9e4;
+    }
+    .side-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .side-status strong { display: block; color: var(--ink); font-size: 11px; }
+    .logout-button {
+      min-height: 43px;
+      border: 1px solid #f0c6ca;
+      border-radius: 11px;
+      color: var(--red-dark);
+      background: #fff8f8;
+      font-weight: 850;
+      cursor: pointer;
+    }
+    .dashboard-main { min-width: 0; padding: 34px clamp(22px, 4vw, 52px); }
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 25px;
+      margin-bottom: 24px;
+    }
+    .dashboard-header small {
+      color: var(--red);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+    .dashboard-header h1 { margin: 6px 0 5px; font-size: 31px; letter-spacing: -.035em; }
+    .dashboard-header p { margin: 0; color: var(--muted); font-size: 12px; }
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 13px 9px 9px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      color: #fff;
+      background: var(--red);
+      font-weight: 900;
+    }
+    .user-chip small { display: block; color: var(--muted); font-size: 9px; letter-spacing: 0; }
+    .user-chip strong { display: block; margin-top: 3px; font-size: 11px; }
+
+    .welcome-panel {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 25px 27px;
+      border: 1px solid #f1d88c;
+      border-radius: 19px;
+      background:
+        radial-gradient(circle at 88% 35%, rgba(255, 255, 255, .9), transparent 25%),
+        linear-gradient(115deg, #fff8da, #ffd55c);
+    }
+    .panel-label { color: #a7561c; font-size: 9px; font-weight: 900; letter-spacing: .15em; }
+    .welcome-panel h2 { margin: 7px 0 6px; font-size: 21px; }
+    .welcome-panel p { margin: 0; color: #756157; font-size: 11px; }
+    .welcome-badge {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex: 0 0 auto;
+      padding: 12px 14px;
+      border: 1px solid rgba(140, 86, 18, .12);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, .66);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 13px;
+      margin-top: 16px;
+    }
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-height: 88px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 13px;
+      color: var(--red-dark);
+      background: #fff0d1;
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .stat-card strong { display: block; font-size: 20px; }
+    .stat-card small { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, .75fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .panel {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .panel h2 { margin: 5px 0 0; font-size: 18px; }
+    .panel-badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: #117746;
+      background: #e7f7ef;
+      font-size: 9px;
+      font-weight: 850;
+    }
+    .sheet-row {
+      display: grid;
+      grid-template-columns: 45px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 13px;
+      padding: 15px;
+      border: 1px solid #eee5df;
+      border-radius: 14px;
+      background: var(--surface-soft);
+    }
+    .sheet-icon {
+      width: 42px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: #fff;
+      background: var(--green);
+      font-weight: 900;
+    }
+    .sheet-row strong { display: block; font-size: 12px; }
+    .sheet-row small { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; }
+    .open-button {
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid #efbcc1;
+      border-radius: 10px;
+      color: var(--red-dark);
+      background: #fff7f7;
+      font-size: 10px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+    .panel-message { min-height: 16px; margin: 12px 2px 0; color: #8a6052; font-size: 9px; }
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0e9e4;
+    }
+    .session-item:last-child { border-bottom: 0; }
+    .session-bullet {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #c9bcb5;
+    }
+    .session-bullet.active {
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(32, 167, 101, .12);
+    }
+    .session-item strong { display: block; font-size: 11px; }
+    .session-item small { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .dashboard-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9px;
+    }
+    .dashboard-footer strong { color: #5e2824; }
+
+    @media (max-width: 980px) {
+      .login-main { grid-template-columns: 1fr 400px; gap: 38px; }
+      .hero h1 { font-size: 56px; }
+      .benefit-grid { grid-template-columns: 1fr; gap: 9px; }
+      .benefit {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        align-items: center;
+        column-gap: 12px;
+        padding: 13px;
+      }
+      .benefit-icon { grid-row: 1 / 3; margin: 0; }
+      .benefit small { margin-top: 3px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 800px) {
+      .shell { width: min(680px, calc(100% - 30px)); }
+      .login-main { grid-template-columns: 1fr; gap: 34px; padding: 40px 0; }
+      .hero { max-width: 100%; text-align: center; }
+      .eyebrow { justify-content: center; }
+      .hero h1, .hero-subtitle { margin-left: auto; margin-right: auto; }
+      .benefit-grid { grid-template-columns: repeat(3, 1fr); }
+      .benefit { display: block; text-align: left; }
+      .benefit-icon { margin-bottom: 10px; }
+      .login-card { justify-self: center; }
+      .dashboard-page { display: block; }
+      .sidebar {
+        min-height: auto;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding: 12px 18px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .side-brand { padding: 0; border: 0; }
+      .side-nav { display: none; }
+      .side-bottom { margin: 0; padding: 0; border: 0; }
+      .side-status { display: none; }
+      .logout-button { padding: 0 16px; }
+      .dashboard-main { padding: 25px 18px; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .topbar { min-height: 74px; }
+      .brand-copy small, .top-chip:first-child { display: none; }
+      .top-chip { padding: 0 10px; }
+      .hero h1 { font-size: 44px; }
+      .hero-subtitle { font-size: 15px; }
+      .benefit-grid { grid-template-columns: 1fr; }
+      .benefit {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        column-gap: 12px;
+      }
+      .benefit-icon { grid-row: 1 / 3; margin: 0; }
+      .login-card { padding: 25px 21px; border-radius: 21px; }
+      .site-footer { min-height: 82px; flex-direction: column; justify-content: center; text-align: center; }
+      .footer-links { display: none; }
+      .dashboard-header { align-items: flex-start; }
+      .user-chip { display: none; }
+      .welcome-panel { align-items: flex-start; flex-direction: column; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .sheet-row { grid-template-columns: 42px 1fr; }
+      .open-button { grid-column: 1 / -1; width: 100%; }
+      .dashboard-footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <section id="loginPage" class="login-page">
+    <header class="topbar shell">
+      <div class="brand">
+        <img src="icon-192.png" alt="">
+        <div class="brand-copy">
+          <strong>Portal de Planilhas</strong>
+          <small>Ambiente interno de trabalho</small>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span class="top-chip"><span class="status-dot"></span> Sistema disponível</span>
+        <span class="top-chip">Acesso interno</span>
+      </div>
+    </header>
+
+    <main class="login-main shell">
+      <section class="hero" aria-labelledby="pageTitle">
+        <p class="eyebrow">PORTAL DE ACESSO</p>
+        <h1 id="pageTitle">Suas planilhas em <span>um só lugar.</span></h1>
+        <p class="hero-subtitle">Acesse o ambiente de trabalho de forma rápida, organizada e com uma experiência simples em qualquer dispositivo.</p>
+
+        <div class="benefit-grid">
+          <article class="benefit">
+            <span class="benefit-icon">✓</span>
+            <strong>Acesso organizado</strong>
+            <small>Planilhas autorizadas reunidas em um único painel.</small>
+          </article>
+          <article class="benefit">
+            <span class="benefit-icon">◷</span>
+            <strong>Sessão acompanhada</strong>
+            <small>Visualização clara do tempo e do histórico de acesso.</small>
+          </article>
+          <article class="benefit">
+            <span class="benefit-icon">▤</span>
+            <strong>Google Sheets</strong>
+            <small>Abertura rápida das planilhas de trabalho liberadas.</small>
+          </article>
+        </div>
+      </section>
+
+      <form id="loginForm" class="login-card">
+        <div class="login-card-head">
+          <span class="login-card-icon">↗</span>
+          <div>
+            <h2>Bem-vindo!</h2>
+            <p>Entre para acessar o seu painel.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="username">Usuário</label>
+          <div class="field-control">
+            <span>●</span>
+            <input id="username" name="username" autocomplete="username" placeholder="Digite seu usuário" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Senha</label>
+          <div class="field-control">
+            <span>◆</span>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required>
+          </div>
+        </div>
+
+        <button class="login-button" type="submit"><span>Entrar no portal</span><span>→</span></button>
+        <div class="login-card-foot"><span>●</span> Acesso interno • Google Sheets</div>
+      </form>
+    </main>
+
+    <footer class="site-footer shell">
+      <span>Portal de Planilhas • <strong>Desenvolvido por: Álefim Oliveira</strong></span>
+      <div class="footer-links"><span>Organização</span><span>Agilidade</span><span>Controle</span></div>
+    </footer>
+  </section>
+
+  <section id="dashboardPage" class="dashboard-page hidden">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <img src="icon-192.png" alt="">
+        <div><strong>Portal de Planilhas</strong><small>Painel de acesso</small></div>
+      </div>
+
+      <nav class="side-nav" aria-label="Menu principal">
+        <button class="nav-item active" type="button"><span class="nav-symbol">▦</span>Visão geral</button>
+        <button class="nav-item" type="button"><span class="nav-symbol">▤</span>Minhas planilhas</button>
+        <button class="nav-item" type="button"><span class="nav-symbol">◷</span>Sessão atual</button>
+      </nav>
+
+      <div class="side-bottom">
+        <div class="side-status"><span class="status-dot"></span><div><small>Status</small><strong>Conectado</strong></div></div>
+        <button id="logoutButton" class="logout-button" type="button">Sair do portal</button>
+      </div>
+    </aside>
+
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div>
+          <small>PORTAL DE PLANILHAS</small>
+          <h1>Olá, <span id="displayName">usuário</span>!</h1>
+          <p>Confira suas planilhas e as informações desta sessão.</p>
+        </div>
+        <div class="user-chip">
+          <span id="userAvatar" class="user-avatar">U</span>
+          <div><small>Usuário conectado</small><strong id="userName">Sessão ativa</strong></div>
+          <span class="status-dot"></span>
+        </div>
+      </header>
+
+      <section class="welcome-panel">
+        <div>
+          <span class="panel-label">PAINEL PRINCIPAL</span>
+          <h2>Seu ambiente de trabalho está pronto</h2>
+          <p>Acesse abaixo as planilhas disponíveis para sua conta.</p>
+        </div>
+        <span class="welcome-badge"><span class="status-dot"></span> Sessão conectada</span>
+      </section>
+
+      <section class="stats-grid" aria-label="Resumo da sessão">
+        <article class="stat-card"><span class="stat-icon">▤</span><div><strong>1</strong><small>Planilha disponível</small></div></article>
+        <article class="stat-card"><span class="stat-icon">◷</span><div><strong id="sessionTime">00:00:00</strong><small>Tempo nesta sessão</small></div></article>
+        <article class="stat-card"><span class="stat-icon">✓</span><div><strong>Online</strong><small>Status do portal</small></div></article>
+        <article class="stat-card"><span class="stat-icon">↗</span><div><strong id="openCount">0</strong><small>Aberturas de planilha</small></div></article>
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-head">
+            <div><span class="panel-label">ACESSO RÁPIDO</span><h2>Minhas planilhas</h2></div>
+            <span class="panel-badge">Google Sheets</span>
+          </div>
+          <article class="sheet-row">
+            <span class="sheet-icon">▤</span>
+            <div><strong>Cópia de PLAN_COMITE_Sergio_Aguiar_2026</strong><small>Entre na conta Google que possui acesso à planilha</small></div>
+            <button id="openSheetButton" class="open-button" type="button">Entrar no Google e abrir →</button>
+          </article>
+          <p id="panelMessage" class="panel-message"></p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><span class="panel-label">ATIVIDADE</span><h2>Sessão atual</h2></div>
+          </div>
+          <div class="session-item"><span class="session-bullet active"></span><div><strong>Conectado agora</strong><small>Sessão em andamento</small></div></div>
+          <div class="session-item"><span class="session-bullet"></span><div><strong>Portal disponível</strong><small>Acesso pelo navegador</small></div></div>
+          <div class="session-item"><span class="session-bullet"></span><div><strong>Google Sheets</strong><small>Planilha liberada</small></div></div>
+        </section>
+      </div>
+
+      <footer class="dashboard-footer">
+        <span>Portal de Planilhas • <strong>Desenvolvido por: Álefim Oliveira</strong></span>
+        <span>Ambiente interno de trabalho</span>
+      </footer>
+    </main>
+  </section>
+
+  <script>
+    const MAIN_SPREADSHEET_ID = '1jabSU0G5IYoKP6raGtZszQuV8Ti92MJu9E44zkOWrCc';
+    const loginPage = document.getElementById('loginPage');
+    const dashboardPage = document.getElementById('dashboardPage');
+    const loginForm = document.getElementById('loginForm');
+    const loginButton = loginForm.querySelector('.login-button');
+    const logoutButton = document.getElementById('logoutButton');
+    const openSheetButton = document.getElementById('openSheetButton');
+    const displayName = document.getElementById('displayName');
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+    const sessionTime = document.getElementById('sessionTime');
+    const openCount = document.getElementById('openCount');
+    const panelMessage = document.getElementById('panelMessage');
+    let sessionStartedAt = 0;
+    let sessionId = sessionStorage.getItem('portalSessionId') || '';
+    let timer = null;
+    let heartbeatTimer = null;
+    let totalOpens = 0;
+
+    function formatDuration(totalSeconds) {
+      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+      return hours + ':' + minutes + ':' + seconds;
+    }
+
+    function startSessionClock() {
+      if (!sessionStartedAt) sessionStartedAt = Date.now();
+      clearInterval(timer);
+      timer = setInterval(function () {
+        const elapsed = Math.floor((Date.now() - sessionStartedAt) / 1000);
+        sessionTime.textContent = formatDuration(elapsed);
+      }, 1000);
+    }
+
+    function showDashboard(result) {
+      const person = result.user?.nome || result.user?.usuario || 'usuário';
+      sessionId = result.sessionId;
+      sessionStorage.setItem('portalSessionId', sessionId);
+      displayName.textContent = person;
+      userName.textContent = person;
+      userAvatar.textContent = person.charAt(0).toUpperCase();
+      totalOpens = Number(result.totalAccesses || 0);
+      openCount.textContent = String(totalOpens);
+      sessionStartedAt = Date.now() - Number(result.currentSessionDurationSeconds || 0) * 1000;
+      loginPage.classList.add('hidden');
+      dashboardPage.classList.remove('hidden');
+      startSessionClock();
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = setInterval(sendHeartbeat, Math.max(30, Number(result.heartbeatSeconds || 60)) * 1000);
+      window.scrollTo(0, 0);
+    }
+
+    function setLoginBusy(active) {
+      loginButton.disabled = active;
+      loginButton.querySelector('span:first-child').textContent = active ? 'Entrando…' : 'Entrar no portal';
+    }
+
+    loginForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      setLoginBusy(true);
+      google.script.run
+        .withSuccessHandler(function(result) {
+          setLoginBusy(false);
+          if (!result || !result.ok) return alert(result?.message || 'Usuário ou senha inválidos.');
+          document.getElementById('password').value = '';
+          showDashboard(result);
+        })
+        .withFailureHandler(function(error) {
+          setLoginBusy(false);
+          alert(error?.message || 'Não foi possível entrar.');
+        })
+        .login(username, password, navigator.userAgent);
+    });
+
+    logoutButton.addEventListener('click', function () {
+      const currentSession = sessionId;
+      clearSession();
+      google.script.run.withSuccessHandler(showLogin).withFailureHandler(showLogin).logout(currentSession);
+    });
+
+    openSheetButton.addEventListener('click', function () {
+      if (!sessionId) return showLogin();
+      const popup = window.open('about:blank', '_blank');
+      openSheetButton.disabled = true;
+      google.script.run
+        .withSuccessHandler(function(result) {
+          openSheetButton.disabled = false;
+          if (!result?.ok || !result.url) {
+            if (popup) popup.close();
+            alert(result?.message || 'Sessão expirada.');
+            return showLogin();
+          }
+          totalOpens += 1;
+          openCount.textContent = String(totalOpens);
+          panelMessage.textContent = 'Escolha a conta Google que possui acesso à planilha.';
+          const chooser = 'https://accounts.google.com/AccountChooser?continue=' + encodeURIComponent(result.url) + '&service=wise';
+          if (popup) popup.location = chooser;
+          else window.open(chooser, '_blank', 'noopener,noreferrer');
+        })
+        .withFailureHandler(function(error) {
+          openSheetButton.disabled = false;
+          if (popup) popup.close();
+          alert(error?.message || 'Não foi possível abrir a planilha.');
+        })
+        .registerSpreadsheetOpen(sessionId, MAIN_SPREADSHEET_ID);
+    });
+
+    function sendHeartbeat() {
+      if (!sessionId) return;
+      google.script.run.withSuccessHandler(function(result) {
+        if (!result?.ok) { clearSession(); showLogin(); }
+      }).heartbeat(sessionId);
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem('portalSessionId');
+      sessionId = '';
+      clearInterval(timer);
+      clearInterval(heartbeatTimer);
+      timer = null;
+      heartbeatTimer = null;
+      sessionTime.textContent = '00:00:00';
+    }
+
+    function showLogin() {
+      clearSession();
+      dashboardPage.classList.add('hidden');
+      loginPage.classList.remove('hidden');
+      loginForm.reset();
+      window.scrollTo(0, 0);
+    }
+
+    if (sessionId) {
+      google.script.run.withSuccessHandler(function(result) {
+        if (result?.ok) showDashboard(result); else showLogin();
+      }).withFailureHandler(showLogin).restoreSession(sessionId);
+    }
+  </script>
+</body>
+</html>
