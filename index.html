@@ -562,6 +562,20 @@
       font-size: 9px;
     }
     .dashboard-footer strong { color: #5e2824; }
+    .admin-dashboard { margin-top: 16px; }
+    .admin-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .admin-title h2 { margin: 5px 0 0; font-size: 21px; }
+    .admin-refresh { min-height: 38px; padding: 0 14px; border: 1px solid #efbcc1; border-radius: 10px; color: var(--red-dark); background: #fff8f8; font-weight: 850; cursor: pointer; }
+    .admin-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .admin-card { padding: 17px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
+    .admin-card small { display: block; color: var(--muted); font-size: 9px; }
+    .admin-card strong { display: block; margin-top: 7px; color: var(--red-dark); font-size: 24px; }
+    .admin-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    .admin-table th, .admin-table td { padding: 10px 8px; border-bottom: 1px solid #f0e9e4; text-align: left; }
+    .admin-table th { color: var(--muted); font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
+    .admin-table td:last-child, .admin-table th:last-child { text-align: right; font-weight: 850; }
+    .admin-loading { padding: 24px; text-align: center; color: var(--muted); }
 
     @media (max-width: 980px) {
       .login-main { grid-template-columns: 1fr 400px; gap: 38px; }
@@ -607,6 +621,8 @@
       .logout-button { padding: 0 16px; }
       .dashboard-main { padding: 25px 18px; }
       .dashboard-grid { grid-template-columns: 1fr; }
+      .admin-stats { grid-template-columns: repeat(2, 1fr); }
+      .admin-tables { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -632,6 +648,7 @@
       .sheet-row { grid-template-columns: 42px 1fr; }
       .open-button { grid-column: 1 / -1; width: 100%; }
       .dashboard-footer { flex-direction: column; }
+      .admin-stats { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -785,6 +802,31 @@
         </section>
       </div>
 
+      <section id="adminDashboard" class="admin-dashboard hidden" aria-label="Painel administrativo">
+        <div class="admin-title">
+          <div><span class="panel-label">ADMINISTRADOR</span><h2>Dashboard das digitações</h2></div>
+          <button id="adminRefreshButton" class="admin-refresh" type="button">Atualizar dados</button>
+        </div>
+        <div id="adminLoading" class="panel admin-loading">Carregando contabilização das pesquisas…</div>
+        <div id="adminContent" class="hidden">
+          <div class="admin-stats">
+            <article class="admin-card"><small>Pesquisas contabilizadas</small><strong id="adminResearchTotal">0</strong></article>
+            <article class="admin-card"><small>Ruas com digitação</small><strong id="adminTypedRows">0</strong></article>
+            <article class="admin-card"><small>Áreas com dados</small><strong id="adminAreasWithData">0</strong></article>
+            <article class="admin-card"><small>Total de votos lançados</small><strong id="adminVotesTotal">0</strong></article>
+            <article class="admin-card"><small>Casas fechadas</small><strong id="adminClosedHouses">0</strong></article>
+            <article class="admin-card"><small>Casas desabitadas</small><strong id="adminEmptyHouses">0</strong></article>
+            <article class="admin-card"><small>Bairros/áreas cadastrados</small><strong id="adminNeighborhoods">0</strong></article>
+            <article class="admin-card"><small>Ruas cadastradas</small><strong id="adminStreets">0</strong></article>
+          </div>
+          <div class="admin-tables">
+            <section class="panel"><div class="panel-head"><div><span class="panel-label">CONTABILIZAÇÃO</span><h2>Totais por cargo</h2></div></div><table class="admin-table"><thead><tr><th>Cargo</th><th>Total</th></tr></thead><tbody id="adminOfficeRows"></tbody></table></section>
+            <section class="panel"><div class="panel-head"><div><span class="panel-label">PESQUISAS</span><h2>Ranking por área</h2></div></div><table class="admin-table"><thead><tr><th>Área</th><th>Pesquisas</th></tr></thead><tbody id="adminAreaRows"></tbody></table></section>
+          </div>
+          <p id="adminUpdatedAt" class="panel-message"></p>
+        </div>
+      </section>
+
       <footer class="dashboard-footer">
         <span>Portal de Planilhas • <strong>Desenvolvido por: Álefim Oliveira</strong></span>
         <span>Ambiente interno de trabalho</span>
@@ -812,6 +854,8 @@
     const sessionTime = document.getElementById('sessionTime');
     const openCount = document.getElementById('openCount');
     const panelMessage = document.getElementById('panelMessage');
+    const adminDashboard = document.getElementById('adminDashboard');
+    const adminRefreshButton = document.getElementById('adminRefreshButton');
     let sessionStartedAt = 0;
     let sessionId = sessionStorage.getItem('portalSessionId') || '';
     let timer = null;
@@ -849,8 +893,51 @@
       startSessionClock();
       clearInterval(heartbeatTimer);
       heartbeatTimer = setInterval(sendHeartbeat, Math.max(30, Number(result.heartbeatSeconds || 60)) * 1000);
+      if (result.user?.usuario === 'administrador') {
+        adminDashboard.classList.remove('hidden');
+        loadAdminDashboard();
+      } else {
+        adminDashboard.classList.add('hidden');
+      }
       window.scrollTo(0, 0);
     }
+
+    function loadAdminDashboard() {
+      document.getElementById('adminLoading').classList.remove('hidden');
+      document.getElementById('adminContent').classList.add('hidden');
+      if (!HAS_APPS_SCRIPT) {
+        renderAdminDashboard({ ok: true, pesquisasTotal: 0, linhasDigitadas: 0, areasComDados: 0, votosTotal: 0, casasFechadas: 0, casasDesabitadas: 0, bairros: 15, ruas: 442, porCargo: [], areas: [], atualizadoEm: 'Abra pelo Google Apps Script para carregar dados ao vivo.' });
+        return;
+      }
+      google.script.run.withSuccessHandler(renderAdminDashboard).withFailureHandler(function(error) {
+        document.getElementById('adminLoading').textContent = error?.message || 'Não foi possível carregar o dashboard.';
+      }).getAdminDashboardData(sessionId);
+    }
+
+    function renderAdminDashboard(data) {
+      if (!data?.ok) {
+        document.getElementById('adminLoading').textContent = data?.message || 'Acesso não autorizado.';
+        return;
+      }
+      const values = {
+        adminResearchTotal: data.pesquisasTotal, adminTypedRows: data.linhasDigitadas,
+        adminAreasWithData: data.areasComDados, adminVotesTotal: data.votosTotal,
+        adminClosedHouses: data.casasFechadas, adminEmptyHouses: data.casasDesabitadas,
+        adminNeighborhoods: data.bairros, adminStreets: data.ruas
+      };
+      Object.keys(values).forEach(function(id) { document.getElementById(id).textContent = Number(values[id] || 0).toLocaleString('pt-BR'); });
+      document.getElementById('adminOfficeRows').innerHTML = (data.porCargo || []).map(function(item) { return '<tr><td>' + escapeHtml(item.cargo) + '</td><td>' + Number(item.total || 0).toLocaleString('pt-BR') + '</td></tr>'; }).join('') || '<tr><td colspan="2">Nenhum voto digitado</td></tr>';
+      document.getElementById('adminAreaRows').innerHTML = (data.areas || []).map(function(item) { return '<tr><td>' + escapeHtml(item.nome) + '</td><td>' + Number(item.pesquisas || 0).toLocaleString('pt-BR') + '</td></tr>'; }).join('') || '<tr><td colspan="2">Nenhuma pesquisa digitada</td></tr>';
+      document.getElementById('adminUpdatedAt').textContent = 'Atualizado em ' + data.atualizadoEm;
+      document.getElementById('adminLoading').classList.add('hidden');
+      document.getElementById('adminContent').classList.remove('hidden');
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, function(char) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]; });
+    }
+
+    adminRefreshButton.addEventListener('click', loadAdminDashboard);
 
     function setLoginBusy(active) {
       loginButton.disabled = active;
