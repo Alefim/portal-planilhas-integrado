@@ -798,7 +798,7 @@
     const HAS_APPS_SCRIPT = typeof google !== 'undefined' && google.script && google.script.run;
     const LOCAL_USERS = {
       alefim: 'Alefim', joao: 'João', robson: 'Robson', julenio: 'Julenio',
-      mateus: 'Mateus', eliane: 'Eliane', clairton: 'Clairton'
+      mateus: 'Mateus', eliane: 'Eliane', clairton: 'Clairton', administrador: 'Administrador'
     };
     const loginPage = document.getElementById('loginPage');
     const dashboardPage = document.getElementById('dashboardPage');
@@ -866,7 +866,8 @@
       if (!HAS_APPS_SCRIPT) {
         setTimeout(function () {
           setLoginBusy(false);
-          if (!LOCAL_USERS[username] || password !== 'c0m1t340') {
+          const validPassword = username === 'administrador' ? password === '3sc0l@' : password === 'c0m1t341';
+          if (!LOCAL_USERS[username] || !validPassword) {
             return alert('Usuário ou senha inválidos.');
           }
           const localSession = {
