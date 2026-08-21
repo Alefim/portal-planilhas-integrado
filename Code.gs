@@ -281,6 +281,70 @@ function getUserDashboardData_(usuario, currentSessionId) {
   };
 }
 
+function getAdminDashboardData(sessionId) {
+  const session = getSession_(sessionId);
+  if (!session || session.status !== 'ATIVA' || normalizeUser_(session.usuario) !== 'administrador') {
+    return { ok: false, message: 'Acesso exclusivo do administrador.' };
+  }
+
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const resumo = ss.getSheetByName('RESUMO GERAL');
+  if (!resumo) return { ok: false, message: 'A aba RESUMO GERAL não foi encontrada.' };
+
+  const summary = resumo.getRange('A4:G5').getDisplayValues();
+  const candidateRows = resumo.getRange('A10:C32').getDisplayValues();
+  const porCargoMap = {};
+  const candidatos = [];
+  let votosTotal = 0;
+  candidateRows.forEach(function(row) {
+    const cargo = String(row[0] || '').trim();
+    const candidato = String(row[1] || '').trim();
+    const votos = Number(String(row[2] || '0').replace(/\./g, '').replace(',', '.')) || 0;
+    if (!cargo || !candidato) return;
+    porCargoMap[cargo] = (porCargoMap[cargo] || 0) + votos;
+    votosTotal += votos;
+    candidatos.push({ cargo: cargo, candidato: candidato, votos: votos });
+  });
+
+  const ignored = ['RESUMO GERAL', 'MODELO PESQUISA 2026', 'CADASTRO DE RUAS', 'RANKING', 'RESUMO POR RUA', 'RESUMO POR BAIRRO', 'CONFIGURAÇÃO'];
+  const areas = [];
+  let linhasDigitadas = 0;
+  ss.getSheets().forEach(function(sheet) {
+    if (ignored.indexOf(sheet.getName()) !== -1) return;
+    const lastRow = Math.min(sheet.getLastRow(), 1000);
+    if (lastRow < 6) return;
+    const values = sheet.getRange(6, 1, lastRow - 5, 26).getDisplayValues();
+    let pesquisas = 0;
+    let linhas = 0;
+    values.forEach(function(row) {
+      const label = String(row[0] || '').trim();
+      if (!label || label === 'TOTAL' || label.indexOf('RUA/LOCALIDADE') !== -1 || label.indexOf('RUAS -') === 0) return;
+      const nums = row.slice(1).map(function(value) { return Number(String(value || '0').replace(/\./g, '').replace(',', '.')) || 0; });
+      if (nums.some(function(value) { return value > 0; })) linhas += 1;
+      pesquisas += nums.slice(21, 25).reduce(function(sum, value) { return sum + value; }, 0);
+    });
+    linhasDigitadas += linhas;
+    areas.push({ nome: sheet.getName(), pesquisas: pesquisas, linhas: linhas });
+  });
+
+  const pesquisasTotal = porCargoMap.Presidente || areas.reduce(function(sum, area) { return sum + area.pesquisas; }, 0);
+  return {
+    ok: true,
+    pesquisasTotal: pesquisasTotal,
+    votosTotal: votosTotal,
+    bairros: Number(summary[1][0]) || areas.length,
+    ruas: Number(summary[1][2]) || 0,
+    casasFechadas: Number(summary[1][4]) || 0,
+    casasDesabitadas: Number(summary[1][6]) || 0,
+    linhasDigitadas: linhasDigitadas,
+    areasComDados: areas.filter(function(area) { return area.linhas > 0; }).length,
+    porCargo: Object.keys(porCargoMap).map(function(cargo) { return { cargo: cargo, total: porCargoMap[cargo] }; }),
+    candidatos: candidatos.sort(function(a, b) { return b.votos - a.votos; }).slice(0, 10),
+    areas: areas.sort(function(a, b) { return b.pesquisas - a.pesquisas; }).slice(0, 10),
+    atualizadoEm: Utilities.formatDate(new Date(), Session.getScriptTimeZone() || CONFIG.TIMEZONE, "dd/MM/yyyy 'às' HH:mm")
+  };
+}
+
 function getActiveSpreadsheets_() {
   const principal = getMainSpreadsheetConfig_();
   return [{ id: principal.id, nome: principal.nome, url: principal.url, ordem: 1 }];
