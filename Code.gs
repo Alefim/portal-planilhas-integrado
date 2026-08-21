@@ -27,13 +27,14 @@ const SESSION_LOG_SHEET_NAME = 'Registros';
 
 // Usuários iniciais: apenas salt + SHA-256; senha não fica em texto puro.
 const INITIAL_USERS = [
-  { usuario: 'alefim', nome: 'Alefim', salt: '0350c5d10b0835c01e5dd13db0229712', senhaHash: '742d32131837abd2901134ce4dd47d64e213106e8f82f902acbde9ef3c4ef1cb' },
-  { usuario: 'joao', nome: 'João', salt: '4f28753e17b1c890d8ee66e720962aa1', senhaHash: '649062a8edd68f8448a07fd355db37455d6e8b28418a0cab1184c58a83f66975' },
-  { usuario: 'robson', nome: 'Robson', salt: '4b353979857331a20428172c91fd5e12', senhaHash: 'c74d4f1ea85a338ba16066bc6842ec1255cc1e76cb3ced449540d1cd29193947' },
-  { usuario: 'julenio', nome: 'Julenio', salt: '2988c4fcd2a4ecd3535364269f141865', senhaHash: 'ee08ae5a10766fe6c28f86b06d47dd35bce7a6058da2ff41665166ed76f8cb13' },
-  { usuario: 'mateus', nome: 'Mateus', salt: '245326e5b7956d241c56ecd260122aab', senhaHash: '377ad683f0ca5911f5791262ed420aa3db86174f02d23faef6e5a6ed7b4b29fa' },
-  { usuario: 'eliane', nome: 'Eliane', salt: 'b49fff0ab8b61b1b724d4970f7f0e2c5', senhaHash: 'd826ec870095b9316967d4f2bc3778ec63bb29fa311997137ef97169e03873f7' },
-  { usuario: 'clairton', nome: 'Clairton', salt: '775cbc11ae1f3705d957c51040b6e0f7', senhaHash: 'dfcb472023dfd6f8603209ed12b0f5061e9a1a796aaee914d87026bdffb4b584' }
+  { usuario: 'alefim', nome: 'Alefim', salt: 'f6c4f241402cf869c9978d712f187505', senhaHash: '675315bde1289006240a20a9b3c476a8e1e85441c6415281db3106b5f4a815c9' },
+  { usuario: 'joao', nome: 'João', salt: '7678760a49c961b126164759eb4d1fa4', senhaHash: '6c7d4e462b405c4b6c0ac7a73063fd087d1572e4a78929488fc6aa5c1fbfadf3' },
+  { usuario: 'robson', nome: 'Robson', salt: '454cac3e2f6a4e4ae12cebfc616be9f6', senhaHash: 'aa7ac1425b9a1deafaedc35239c8685961f19c64bee41d00a21bb81339caff5e' },
+  { usuario: 'julenio', nome: 'Julenio', salt: '3b95b1f8f062d102d5cefaecc82f9f36', senhaHash: 'df0448adcd2f6f88629bbab2b723ea22db132ba1a7b43ae0672d1fdb7c067b63' },
+  { usuario: 'mateus', nome: 'Mateus', salt: 'b860a3ce6b941237aa650e2d2edbd03b', senhaHash: '5896eb98e8ba521714028aee4200157af2a3d39bef5d61bfed150d5d775c65fe' },
+  { usuario: 'eliane', nome: 'Eliane', salt: 'a53247f5850998e17e5886b74d44f99e', senhaHash: '073d700dd59d2a1a33024cd958c73b695bbb9a82cc5ad732117983cad8790505' },
+  { usuario: 'clairton', nome: 'Clairton', salt: '83776f3e0dca83920f3a76c5eefcabe8', senhaHash: '74d4cb00c079c8803fea4c3ac22782fb8f489b61b362f7466ddcb73f503bf52e' },
+  { usuario: 'administrador', nome: 'Administrador', salt: '05cf48596da7eae6e62e536ef6afe1d1', senhaHash: 'ea0481b35f89c2b87329ffa087f982dca657f216f94dd2ca699d98b252aa04bc' }
 ];
 
 function doGet() {
@@ -238,6 +239,22 @@ function trocarSenha(usuario, novaSenha) {
     }
   }
   throw new Error('Usuário não encontrado.');
+}
+
+function migrarCredenciais2026() {
+  const sheet = getDb_().getSheetByName(CONFIG.SHEETS.USERS);
+  const values = sheet.getDataRange().getValues();
+  const rowsByUser = {};
+  for (let i = 1; i < values.length; i++) rowsByUser[normalizeUser_(values[i][0])] = i + 1;
+  INITIAL_USERS.forEach(function(user) {
+    const row = rowsByUser[user.usuario];
+    if (row) {
+      sheet.getRange(row, 2, 1, 4).setValues([[user.nome, user.salt, user.senhaHash, true]]);
+    } else {
+      sheet.appendRow([user.usuario, user.nome, user.salt, user.senhaHash, true, new Date()]);
+    }
+  });
+  return 'Credenciais atualizadas para ' + INITIAL_USERS.length + ' usuários.';
 }
 
 function buildLoginResponse_(user, sessionId, currentSeconds) {
