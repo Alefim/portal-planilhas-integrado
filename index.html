@@ -738,7 +738,7 @@
 
       <nav class="side-nav" aria-label="Menu principal">
         <button class="nav-item active" type="button"><span class="nav-symbol">▦</span>Visão geral</button>
-        <button class="nav-item" type="button"><span class="nav-symbol">▤</span>Minhas planilhas</button>
+        <button id="sidebarOpenSheetButton" class="nav-item" type="button" title="Abrir Google Planilhas"><span class="nav-symbol">▤</span>Minhas planilhas</button>
         <button class="nav-item" type="button"><span class="nav-symbol">◷</span>Sessão atual</button>
       </nav>
 
@@ -849,6 +849,7 @@
     const loginButton = loginForm.querySelector('.login-button');
     const logoutButton = document.getElementById('logoutButton');
     const openSheetButton = document.getElementById('openSheetButton');
+    const sidebarOpenSheetButton = document.getElementById('sidebarOpenSheetButton');
     const displayName = document.getElementById('displayName');
     const userName = document.getElementById('userName');
     const userAvatar = document.getElementById('userAvatar');
@@ -1033,6 +1034,10 @@
           alert(error?.message || 'Não foi possível abrir a planilha.');
         })
         .registerSpreadsheetOpen(sessionId, MAIN_SPREADSHEET_ID);
+    });
+
+    sidebarOpenSheetButton.addEventListener('click', function () {
+      openSheetButton.click();
     });
 
     function sendHeartbeat() {
