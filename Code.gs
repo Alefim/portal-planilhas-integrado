@@ -34,6 +34,7 @@ const INITIAL_USERS = [
   { usuario: 'mateus', nome: 'Mateus', salt: 'b860a3ce6b941237aa650e2d2edbd03b', senhaHash: '5896eb98e8ba521714028aee4200157af2a3d39bef5d61bfed150d5d775c65fe' },
   { usuario: 'eliane', nome: 'Eliane', salt: 'a53247f5850998e17e5886b74d44f99e', senhaHash: '073d700dd59d2a1a33024cd958c73b695bbb9a82cc5ad732117983cad8790505' },
   { usuario: 'clairton', nome: 'Clairton', salt: '83776f3e0dca83920f3a76c5eefcabe8', senhaHash: '74d4cb00c079c8803fea4c3ac22782fb8f489b61b362f7466ddcb73f503bf52e' },
+  { usuario: 'igor', nome: 'Igor', salt: 'a14f7466f9804f268d8a588675e11cba', senhaHash: '6b4570c5d8ee1cd3e83072dd550392af2dc293463d3d8dae516a2c09e2d8ad73' },
   { usuario: 'administrador', nome: 'Administrador', salt: '05cf48596da7eae6e62e536ef6afe1d1', senhaHash: 'ea0481b35f89c2b87329ffa087f982dca657f216f94dd2ca699d98b252aa04bc' }
 ];
 

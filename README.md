@@ -35,6 +35,9 @@ São gravados: usuário, entrada, saída, duração, número de aberturas, statu
 3. Execute `configurarNovaConta()` uma vez e autorize o Google.
 4. Execute `diagnosticoSistema()` para conferir.
 5. Implante como Aplicativo da Web, executando como a conta proprietária/autorizada.
+6. Após atualizar os usuários, execute `migrarCredenciais2026()` e publique uma nova versão da implantação.
+
+> O endereço do GitHub Pages oferece somente a interface estática de contingência. Para registrar logins, duração, heartbeat, abertura de planilhas e encerramento na planilha de sessões, use o endereço da implantação do Google Apps Script.
 
 Se a conta não tiver permissão para o arquivo principal, o sistema informa que a planilha do Google Drive não está acessível.
 
