@@ -4,10 +4,10 @@ Projeto para Google Apps Script conectado diretamente à planilha nativa do Goog
 
 ## Planilha principal do Drive
 
-- Arquivo: `PLAN_COMITE_Sergio_Aguiar_2026 Ok`
-- ID do Google Drive/Sheets: `1jabSU0G5IYoKP6raGtZszQuV8Ti92MJu9E44zkOWrCc`
+- Arquivo: `PLAN_COMITE_Sergio_Aguiar_2026_atualizada OK`
+- ID do Google Drive/Sheets: `1flygUldKpGBRS0pOZxJdk2HGQRiXeBDbKj2LmJlJxkM`
 - Aba inicial: `RESUMO GERAL`
-- gid: `349757095`
+- gid: `1391495372`
 
 O portal não usa arquivo `.xlsx` local. O `Code.gs` executa `SpreadsheetApp.openById(...)` para validar e resolver a planilha diretamente no Google Drive da conta que executa o Apps Script.
 
@@ -45,6 +45,6 @@ Se a conta não tiver permissão para o arquivo principal, o sistema informa que
 
 O botão **Abrir planilha →** abre o arquivo original do Google Drive:
 
-`https://docs.google.com/spreadsheets/d/1jabSU0G5IYoKP6raGtZszQuV8Ti92MJu9E44zkOWrCc/edit?usp=drivesdk`
+`https://docs.google.com/spreadsheets/d/1flygUldKpGBRS0pOZxJdk2HGQRiXeBDbKj2LmJlJxkM/edit?usp=drivesdk`
 
 Se o usuário já estiver autenticado no Google, a planilha abre diretamente. Caso contrário, o próprio Google solicita a conta e, após o login, abre o arquivo conforme as permissões dessa conta.
