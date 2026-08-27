@@ -18,8 +18,8 @@ const CONTROL_SPREADSHEET_PROPERTY = 'CONTROL_SPREADSHEET_ID';
 const AUDIT_SPREADSHEET_PROPERTY = 'AUDIT_SPREADSHEET_ID';
 
 // Planilha nativa do Google Drive / Google Sheets.
-const MAIN_SPREADSHEET_ID = '1jabSU0G5IYoKP6raGtZszQuV8Ti92MJu9E44zkOWrCc';
-const MAIN_SHEET_GID = 349757095;
+const MAIN_SPREADSHEET_ID = '1flygUldKpGBRS0pOZxJdk2HGQRiXeBDbKj2LmJlJxkM';
+const MAIN_SHEET_GID = 1391495372;
 
 // Planilha consolidada que recebe uma linha por sessão do portal.
 const SESSION_LOG_SPREADSHEET_ID = '1Q4QHcoPY27fboJEfq73pYgRrntG50N6c8rAx2VdqtHw';
